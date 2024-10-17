@@ -32,8 +32,20 @@ fn main() {
 }
 
 fn tokenize(input: &str) {
-    for c in input.chars() {
-        println!("{}", TokenType::try_from(c).unwrap());
+    let mut e = false;
+    for (no, line) in input.lines().enumerate() {
+        for c in line.chars() {
+            match TokenType::try_from(c) {
+                Ok(v) => println!("{}", v),
+                Err(_) => {
+                    eprintln!("[line {}] Error: Unexpected character: {}", no + 1, c);
+                    e = true;
+                }
+            }
+        }
     }
     println!("EOF  null");
+    if e {
+        std::process::exit(65);
+    }
 }
