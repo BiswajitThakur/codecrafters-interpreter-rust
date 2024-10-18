@@ -42,7 +42,7 @@ fn tk(input: &str) {
             Ok(None) => break,
             Err(e) => {
                 has_err = true;
-                eprintln!("{}", e);
+                eprintln!("[line {}] Error: {}", line, e);
             }
         }
     }

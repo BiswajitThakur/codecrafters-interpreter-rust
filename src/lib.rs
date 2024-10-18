@@ -1,6 +1,27 @@
 use std::iter::Peekable;
 
 #[allow(unused)]
+struct Token {
+    _type: TokenType,
+    lexeme: String,
+}
+
+#[allow(unused)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum ErrorType {
+    InvalidTaken(char),
+    UnterminatedStr,
+}
+
+impl std::fmt::Display for ErrorType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::InvalidTaken(e) => write!(f, "Unexpected character: {}", e),
+            Self::UnterminatedStr => write!(f, "Unterminated string."),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum TokenType {
     LeftParen,
@@ -22,6 +43,7 @@ pub enum TokenType {
     GreaterEqual,
     Less,
     LessEqual,
+    String(String),
 }
 
 impl std::fmt::Display for TokenType {
@@ -46,12 +68,13 @@ impl std::fmt::Display for TokenType {
             Self::GreaterEqual => write!(f, "GREATER_EQUAL >= null"),
             Self::Less => write!(f, "LESS < null"),
             Self::LessEqual => write!(f, "LESS_EQUAL <= null"),
+            Self::String(ref s) => write!(f, "STRING \"{}\" {}", s, s),
         }
     }
 }
 
 impl TryFrom<char> for TokenType {
-    type Error = &'static str;
+    type Error = char;
     fn try_from(value: char) -> Result<Self, Self::Error> {
         match value {
             '(' => Ok(Self::LeftParen),
@@ -69,7 +92,7 @@ impl TryFrom<char> for TokenType {
             '=' => Ok(Self::Equal),
             '>' => Ok(Self::Greater),
             '<' => Ok(Self::Less),
-            _ => Err("Invalid token"),
+            v => Err(v),
         }
     }
 }
@@ -77,7 +100,7 @@ impl TryFrom<char> for TokenType {
 pub fn tokenize<I: Iterator<Item = char>>(
     iter: &mut Peekable<I>,
     line: &mut usize,
-) -> Result<Option<TokenType>, String> {
+) -> Result<Option<TokenType>, ErrorType> {
     while let Some(c) = iter.next() {
         match c {
             ' ' | '\r' | '\t' => continue,
@@ -85,7 +108,6 @@ pub fn tokenize<I: Iterator<Item = char>>(
                 *line += 1;
             }
             '=' if iter.peek() == Some(&'=') => {
-                dbg!(c);
                 iter.next();
                 return Ok(Some(TokenType::EqualEqual));
             }
@@ -115,19 +137,53 @@ pub fn tokenize<I: Iterator<Item = char>>(
                 }
             }
             '/' => return Ok(Some(TokenType::Slash)),
-            v => {
-                if let Ok(t) = TokenType::try_from(v) {
-                    return Ok(Some(t));
-                } else {
-                    return Err(format!(
-                        "[line {}] Error: Unexpected character: {}",
-                        line, v
-                    ));
+            '"' => {
+                let mut s = String::new();
+                let mut end = false;
+                while let Some(v) = iter.peek() {
+                    match *v {
+                        '"' => {
+                            end = true;
+                            iter.next();
+                            break;
+                        }
+                        k => s.push(k),
+                    }
+                    iter.next();
                 }
+                if end {
+                    return Ok(Some(TokenType::String(s)));
+                } else {
+                    return Err(ErrorType::UnterminatedStr);
+                }
+            }
+            v => {
+                let t = TokenType::try_from(v);
+                if let Ok(t) = t {
+                    return Ok(Some(t));
+                };
+                if let Err(e) = t {
+                    return Err(ErrorType::InvalidTaken(e));
+                }
+                unreachable!()
             }
         }
     }
     Ok(None)
+}
+
+#[test]
+fn test_tokenize3() {
+    let input = r#"+"hello"-"#;
+    let mut line = 1;
+    let mut iter = input.chars().peekable();
+
+    assert_eq!(tokenize(&mut iter, &mut line), Ok(Some(TokenType::Plus)));
+    assert_eq!(
+        tokenize(&mut iter, &mut line),
+        Ok(Some(TokenType::String(String::from("hello"))))
+    );
+    assert_eq!(tokenize(&mut iter, &mut line), Ok(Some(TokenType::Minus)));
 }
 
 #[test]
@@ -173,7 +229,7 @@ fn test_tokenize1() {
     assert_eq!(line, 1);
     assert_eq!(
         tokenize(&mut iter, &mut line),
-        Err(format!("[line {}] Error: Unexpected character: {}", 2, '@'))
+        Err(ErrorType::InvalidTaken('@'))
     );
     assert_eq!(line, 2);
     assert_eq!(tokenize(&mut iter, &mut line), Ok(Some(TokenType::Plus)));
