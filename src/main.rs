@@ -1,7 +1,7 @@
 use std::env;
 use std::fs;
 
-use codecrafters_interpreter::TokenType;
+use codecrafters_interpreter::tokenize;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -23,7 +23,7 @@ fn main() {
                 String::new()
             });
 
-            tokenize(&file_contents);
+            tk(&file_contents);
         }
         _ => {
             eprintln!("Unknown command: {}", command);
@@ -31,21 +31,23 @@ fn main() {
     }
 }
 
-fn tokenize(input: &str) {
-    let mut e = false;
-    for (no, line) in input.lines().enumerate() {
-        for c in line.chars() {
-            match TokenType::try_from(c) {
-                Ok(v) => println!("{}", v),
-                Err(_) => {
-                    eprintln!("[line {}] Error: Unexpected character: {}", no + 1, c);
-                    e = true;
-                }
+fn tk(input: &str) {
+    let mut has_err = false;
+    let mut iter = input.chars().peekable();
+    let mut line = 1;
+    loop {
+        let r = tokenize(&mut iter, &mut line);
+        match r {
+            Ok(Some(v)) => println!("{}", v),
+            Ok(None) => break,
+            Err(e) => {
+                has_err = true;
+                eprintln!("{}", e);
             }
         }
     }
     println!("EOF  null");
-    if e {
+    if has_err {
         std::process::exit(65);
     }
 }
