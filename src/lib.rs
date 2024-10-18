@@ -7,7 +7,7 @@ struct Token {
 }
 
 #[allow(unused)]
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub enum ErrorType {
     InvalidTaken(char),
     UnterminatedStr,
@@ -22,7 +22,7 @@ impl std::fmt::Display for ErrorType {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub enum TokenType {
     LeftParen,
     RightParen,
@@ -44,6 +44,7 @@ pub enum TokenType {
     Less,
     LessEqual,
     String(String),
+    Number(String),
 }
 
 impl std::fmt::Display for TokenType {
@@ -69,6 +70,20 @@ impl std::fmt::Display for TokenType {
             Self::Less => write!(f, "LESS < null"),
             Self::LessEqual => write!(f, "LESS_EQUAL <= null"),
             Self::String(ref s) => write!(f, "STRING \"{}\" {}", s, s),
+            Self::Number(ref n) => {
+                if n.ends_with(".0") {
+                    write!(f, "NUMBER {} {}", n.replace(".0", ""), n)
+                } else if !n.contains(".") {
+                    write!(f, "NUMBER {} {}.0", n, n)
+                } else {
+                    let num: f64 = n.parse().unwrap();
+                    if num.fract() == 0.0 {
+                        write!(f, "NUMBER {} {}.0", n, num)
+                    } else {
+                        write!(f, "NUMBER {} {}", n, num)
+                    }
+                }
+            }
         }
     }
 }
@@ -157,6 +172,31 @@ pub fn tokenize<I: Iterator<Item = char>>(
                     return Err(ErrorType::UnterminatedStr);
                 }
             }
+            '0'..='9' => {
+                let mut has_didit = false;
+                let mut num = String::new();
+                num.push(c);
+                while let Some(digit) = iter.peek() {
+                    match digit {
+                        '0'..='9' => {
+                            num.push(*digit);
+                            iter.next();
+                        }
+                        '.' => {
+                            if has_didit {
+                                break;
+                            }
+                            has_didit = true;
+                            num.push(*digit);
+                            iter.next();
+                        }
+                        _ => {
+                            break;
+                        }
+                    }
+                }
+                return Ok(Some(TokenType::Number(num)));
+            }
             v => {
                 let t = TokenType::try_from(v);
                 if let Ok(t) = t {
@@ -173,8 +213,22 @@ pub fn tokenize<I: Iterator<Item = char>>(
 }
 
 #[test]
+fn test_tokenize4() {
+    let input = r#"+"hello   -"#;
+    let mut line = 1;
+    let mut iter = input.chars().peekable();
+
+    assert_eq!(tokenize(&mut iter, &mut line), Ok(Some(TokenType::Plus)));
+    assert_eq!(
+        tokenize(&mut iter, &mut line),
+        Err(ErrorType::UnterminatedStr)
+    );
+    assert_eq!(tokenize(&mut iter, &mut line), Ok(None));
+}
+
+#[test]
 fn test_tokenize3() {
-    let input = r#"+"hello"-"#;
+    let input = r#"+"hello"   -"#;
     let mut line = 1;
     let mut iter = input.chars().peekable();
 
