@@ -90,6 +90,11 @@ pub fn tokenize<I: Iterator<Item = char>>(
                 return Ok(Some(TokenType::EqualEqual));
             }
             '=' => return Ok(Some(TokenType::Equal)),
+            '!' if iter.peek() == Some(&'=') => {
+                iter.next();
+                return Ok(Some(TokenType::BangEqual));
+            }
+            '!' => return Ok(Some(TokenType::Bang)),
             v => {
                 if let Ok(t) = TokenType::try_from(v) {
                     return Ok(Some(t));
