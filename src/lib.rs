@@ -80,7 +80,7 @@ pub fn tokenize<I: Iterator<Item = char>>(
 ) -> Result<Option<TokenType>, String> {
     while let Some(c) = iter.next() {
         match c {
-            ' ' => continue,
+            ' ' | '\r' | '\t' => continue,
             '\n' => {
                 *line += 1;
             }
