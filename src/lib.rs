@@ -76,13 +76,13 @@ impl TryFrom<char> for TokenType {
 
 pub fn tokenize<I: Iterator<Item = char>>(
     iter: &mut Peekable<I>,
-    line_no: &mut usize,
+    line: &mut usize,
 ) -> Result<Option<TokenType>, String> {
     while let Some(c) = iter.next() {
         match c {
             ' ' => continue,
             '\n' => {
-                *line_no += 1;
+                *line += 1;
             }
             '=' if iter.peek() == Some(&'=') => {
                 dbg!(c);
@@ -105,13 +105,23 @@ pub fn tokenize<I: Iterator<Item = char>>(
                 return Ok(Some(TokenType::GreaterEqual));
             }
             '>' => return Ok(Some(TokenType::Greater)),
+            '/' if iter.peek() == Some(&'/') => {
+                iter.next();
+                while let Some(line_end) = iter.peek() {
+                    if line_end == &'\n' {
+                        break;
+                    }
+                    iter.next();
+                }
+            }
+            '/' => return Ok(Some(TokenType::Slash)),
             v => {
                 if let Ok(t) = TokenType::try_from(v) {
                     return Ok(Some(t));
                 } else {
                     return Err(format!(
                         "[line {}] Error: Unexpected character: {}",
-                        line_no, v
+                        line, v
                     ));
                 }
             }
