@@ -45,6 +45,7 @@ pub enum TokenType {
     LessEqual,
     String(String),
     Number(String),
+    Identifier(String),
 }
 
 impl std::fmt::Display for TokenType {
@@ -84,6 +85,7 @@ impl std::fmt::Display for TokenType {
                     }
                 }
             }
+            Self::Identifier(ref v) => write!(f, "IDENTIFIER {} null", v),
         }
     }
 }
@@ -126,22 +128,18 @@ pub fn tokenize<I: Iterator<Item = char>>(
                 iter.next();
                 return Ok(Some(TokenType::EqualEqual));
             }
-            '=' => return Ok(Some(TokenType::Equal)),
             '!' if iter.peek() == Some(&'=') => {
                 iter.next();
                 return Ok(Some(TokenType::BangEqual));
             }
-            '!' => return Ok(Some(TokenType::Bang)),
             '<' if iter.peek() == Some(&'=') => {
                 iter.next();
                 return Ok(Some(TokenType::LessEqual));
             }
-            '<' => return Ok(Some(TokenType::Less)),
             '>' if iter.peek() == Some(&'=') => {
                 iter.next();
                 return Ok(Some(TokenType::GreaterEqual));
             }
-            '>' => return Ok(Some(TokenType::Greater)),
             '/' if iter.peek() == Some(&'/') => {
                 iter.next();
                 while let Some(line_end) = iter.peek() {
@@ -151,7 +149,6 @@ pub fn tokenize<I: Iterator<Item = char>>(
                     iter.next();
                 }
             }
-            '/' => return Ok(Some(TokenType::Slash)),
             '"' => {
                 let mut s = String::new();
                 let mut end = false;
@@ -196,6 +193,26 @@ pub fn tokenize<I: Iterator<Item = char>>(
                     }
                 }
                 return Ok(Some(TokenType::Number(num)));
+            }
+            'a'..='z' | 'A'..='Z' | '_' => {
+                let mut ident = String::new();
+                ident.push(c);
+                loop {
+                    match iter.peek() {
+                        Some(v) => {
+                            if matches!(v, 'a'..='z' | 'A'..='Z'| '0'..='9' | '_') {
+                                if let Some(ch) = iter.next() {
+                                    ident.push(ch);
+                                    continue;
+                                }
+                            } else {
+                                break;
+                            }
+                        }
+                        None => break,
+                    }
+                }
+                return Ok(Some(TokenType::Identifier(ident)));
             }
             v => {
                 let t = TokenType::try_from(v);
