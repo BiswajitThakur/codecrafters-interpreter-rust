@@ -1,4 +1,4 @@
-use std::iter::Peekable;
+use std::{fmt, iter::Peekable};
 
 #[allow(unused)]
 struct Token {
@@ -46,6 +46,7 @@ pub enum TokenType {
     String(String),
     Number(String),
     Identifier(String),
+    Keyword(Keyword),
 }
 
 impl std::fmt::Display for TokenType {
@@ -86,6 +87,7 @@ impl std::fmt::Display for TokenType {
                 }
             }
             Self::Identifier(ref v) => write!(f, "IDENTIFIER {} null", v),
+            Self::Keyword(ref k) => write!(f, "{}", k),
         }
     }
 }
@@ -110,6 +112,74 @@ impl TryFrom<char> for TokenType {
             '>' => Ok(Self::Greater),
             '<' => Ok(Self::Less),
             v => Err(v),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Keyword {
+    And,
+    Class,
+    Else,
+    False,
+    For,
+    Fun,
+    If,
+    Nil,
+    Or,
+    Print,
+    Return,
+    Super,
+    This,
+    True,
+    Var,
+    While,
+}
+
+impl fmt::Display for Keyword {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::And => write!(f, "AND and null"),
+            Self::Class => write!(f, "CLASS class null"),
+            Self::Else => write!(f, "ELSE else null"),
+            Self::False => write!(f, "FALSE false null"),
+            Self::For => write!(f, "FOR for null"),
+            Self::Fun => write!(f, "FUN fun null"),
+            Self::If => write!(f, "IF if null"),
+            Self::Nil => write!(f, "NIL nil null"),
+            Self::Or => write!(f, "OR or null"),
+            Self::Print => write!(f, "PRINT print null"),
+            Self::Return => write!(f, "RETURN return null"),
+            Self::Super => write!(f, "SUPER super null"),
+            Self::This => write!(f, "THIS this null"),
+            Self::True => write!(f, "TRUE true null"),
+            Self::Var => write!(f, "VAR var null"),
+            Self::While => write!(f, "WHILE while null"),
+        }
+    }
+}
+
+impl TryFrom<&str> for Keyword {
+    type Error = &'static str;
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "and" => Ok(Self::And),
+            "class" => Ok(Self::Class),
+            "else" => Ok(Self::Else),
+            "false" => Ok(Self::False),
+            "for" => Ok(Self::For),
+            "fun" => Ok(Self::Fun),
+            "if" => Ok(Self::If),
+            "nil" => Ok(Self::Nil),
+            "or" => Ok(Self::Or),
+            "print" => Ok(Self::Print),
+            "return" => Ok(Self::Return),
+            "super" => Ok(Self::Super),
+            "this" => Ok(Self::This),
+            "true" => Ok(Self::True),
+            "var" => Ok(Self::Var),
+            "while" => Ok(Self::While),
+            _ => Err("Unkown keyword"),
         }
     }
 }
@@ -211,6 +281,9 @@ pub fn tokenize<I: Iterator<Item = char>>(
                         }
                         None => break,
                     }
+                }
+                if let Ok(k) = Keyword::try_from(ident.as_str()) {
+                    return Ok(Some(TokenType::Keyword(k)));
                 }
                 return Ok(Some(TokenType::Identifier(ident)));
             }
