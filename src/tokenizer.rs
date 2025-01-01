@@ -126,6 +126,16 @@ impl<'a> Lexer<'a> {
                     Some(Token::Error(LoxError::UnterminatedStr(self.line)))
                 }
             }
+            b'a'..=b'z' | b'A'..=b'Z' | b'_' => {
+                let rng = self.identifier();
+                let start = rng.start.checked_sub(1).unwrap_or(rng.start);
+                let st = unsafe { std::str::from_utf8_unchecked(&self.sc.val[start..rng.end]) };
+                if let Ok(token) = Token::from_str(st) {
+                    Some(token)
+                } else {
+                    Some(Token::Identifier(Cow::Borrowed(st)))
+                }
+            }
             b'0'..=b'9' => {
                 let rng = self.number();
                 let start = rng.start.checked_sub(1).unwrap_or(rng.start);
@@ -167,6 +177,12 @@ impl<'a> Lexer<'a> {
                 }
             }
         }
+        start..self.sc.pos
+    }
+    fn identifier(&mut self) -> Range<usize> {
+        let start = self.sc.pos;
+        self.sc
+            .consume_while(|u| matches!(u, b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'_'));
         start..self.sc.pos
     }
 }
