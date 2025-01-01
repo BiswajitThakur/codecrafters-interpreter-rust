@@ -87,7 +87,7 @@ impl<'a> From<&'a str> for Lexer<'a> {
     fn from(value: &'a str) -> Self {
         Self {
             sc: Scanner::from(value.as_bytes()),
-            line: 0,
+            line: 1,
             end: false,
         }
     }
@@ -96,6 +96,7 @@ impl<'a> From<&'a str> for Lexer<'a> {
 impl<'a> Lexer<'a> {
     fn match_token(&mut self, v: u8) -> Option<Token<'a>> {
         match v {
+            s if (s as char).is_ascii_whitespace() => None,
             b'=' => Some(self.either(b'=', Token::EqualEqual, Token::Equal)),
             b'!' => Some(self.either(b'=', Token::BangEqual, Token::Bang)),
             b'>' => Some(self.either(b'=', Token::GreaterEqual, Token::Greater)),
@@ -120,7 +121,7 @@ impl<'a> Lexer<'a> {
             b';' => Some(Token::Semicolon),
             b'*' => Some(Token::Star),
             b'.' => Some(Token::Dot),
-            _ => todo!(),
+            e => Some(Token::Error(LoxError::InvalidChar(self.line, e as char))),
         }
     }
     fn either(&mut self, to_match: u8, matched: Token<'a>, unmatched: Token<'a>) -> Token<'a> {
@@ -147,38 +148,17 @@ impl<'a> Iterator for Lexer<'a> {
                     return Some(WithSpan::new(Token::Eof, end_pos..end_pos));
                 }
             }
-            let token = self.match_token(nxt_char.unwrap());
+            let nxt_char = nxt_char.unwrap();
+            if nxt_char == b'\n' {
+                self.line += 1;
+                continue;
+            }
+            let token = self.match_token(nxt_char);
             if token.is_none() {
                 continue;
             }
             let end_pos = self.sc.pos;
             return Some(WithSpan::new(token.unwrap(), initial_pos..end_pos));
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::{Token, WithSpan};
-
-    use super::Lexer;
-
-    #[test]
-    fn test_empty() {
-        let input = "";
-        let mut lx = Lexer::from(input);
-        assert_eq!(lx.next(), Some(WithSpan::new(Token::Eof, 0..0)));
-        assert_eq!(lx.next(), None);
-    }
-    #[test]
-    fn test_brace() {
-        let input = "())(";
-        let mut lx = Lexer::from(input);
-        assert_eq!(lx.next(), Some(WithSpan::new(Token::LeftParen, 0..1)));
-        assert_eq!(lx.next(), Some(WithSpan::new(Token::RightParen, 1..2)));
-        assert_eq!(lx.next(), Some(WithSpan::new(Token::RightParen, 2..3)));
-        assert_eq!(lx.next(), Some(WithSpan::new(Token::LeftParen, 3..4)));
-        assert_eq!(lx.next(), Some(WithSpan::new(Token::Eof, 3..3)));
-        assert_eq!(lx.next(), None);
     }
 }

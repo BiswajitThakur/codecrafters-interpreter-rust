@@ -1,5 +1,7 @@
 use std::{borrow::Cow, fmt};
 
+use crate::LoxError;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token<'a> {
     // Single-character tokens.
@@ -29,6 +31,8 @@ pub enum Token<'a> {
 
     String(Cow<'a, str>),
 
+    Error(LoxError),
+
     Eof,
 }
 
@@ -57,7 +61,19 @@ impl fmt::Display for Token<'_> {
             Self::LessEqual => f.write_str("LESS_EQUAL <= null"),
             Self::GreaterEqual => f.write_str("GREATER_EQUAL >= null"),
             Self::String(_) => todo!(),
+            Self::Error(e) => write!(f, "{}", e),
             Self::Eof => f.write_str("EOF  null"),
         }
+    }
+}
+
+impl Token<'_> {
+    #[inline(always)]
+    pub fn is_err(&self) -> bool {
+        matches!(self, Self::Error(_))
+    }
+    #[inline(always)]
+    pub fn is_ok(&self) -> bool {
+        !matches!(self, Self::Error(_))
     }
 }

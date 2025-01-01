@@ -19,9 +19,17 @@ fn main() {
     match command.as_str() {
         "tokenize" => {
             let lx = Lexer::from(file_contents.as_str());
+            let mut exit_code = 0;
             for token in lx {
-                println!("{}", token.as_ref());
+                let t = token.as_ref();
+                if t.is_ok() {
+                    println!("{}", t);
+                } else {
+                    exit_code = 65;
+                    eprintln!("{}", t);
+                }
             }
+            std::process::exit(exit_code);
         }
         _ => {
             eprintln!("Unknown command: {}", command);
