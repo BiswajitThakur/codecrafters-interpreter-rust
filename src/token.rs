@@ -30,6 +30,7 @@ pub enum Token<'a> {
     LessEqual,
 
     String(Cow<'a, str>),
+    Number(f64, Cow<'a, str>),
 
     Error(LoxError),
 
@@ -61,6 +62,13 @@ impl fmt::Display for Token<'_> {
             Self::LessEqual => f.write_str("LESS_EQUAL <= null"),
             Self::GreaterEqual => f.write_str("GREATER_EQUAL >= null"),
             Self::String(s) => write!(f, "STRING \"{}\" {}", s, s),
+            Self::Number(g, v) => {
+                if g.fract() == 0.0 {
+                    write!(f, "NUMBER {} {}.0", v, *g as i64)
+                } else {
+                    write!(f, "NUMBER {} {}", v, g)
+                }
+            }
             Self::Error(e) => write!(f, "{}", e),
             Self::Eof => f.write_str("EOF  null"),
         }

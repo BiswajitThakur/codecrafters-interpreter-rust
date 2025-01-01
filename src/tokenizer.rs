@@ -1,4 +1,5 @@
-use std::borrow::Cow;
+use std::str::FromStr;
+use std::{borrow::Cow, ops::Range};
 
 use crate::{LoxError, Token, WithSpan};
 
@@ -125,6 +126,15 @@ impl<'a> Lexer<'a> {
                     Some(Token::Error(LoxError::UnterminatedStr(self.line)))
                 }
             }
+            b'0'..=b'9' => {
+                let rng = self.number();
+                let start = rng.start.checked_sub(1).unwrap_or(rng.start);
+                let st = unsafe { std::str::from_utf8_unchecked(&self.sc.val[start..rng.end]) };
+                Some(Token::Number(
+                    f64::from_str(st).unwrap_or_default(),
+                    Cow::Borrowed(st),
+                ))
+            }
             b'(' => Some(Token::LeftParen),
             b')' => Some(Token::RightParen),
             b'{' => Some(Token::LeftBrace),
@@ -146,6 +156,18 @@ impl<'a> Lexer<'a> {
         } else {
             unmatched
         }
+    }
+    fn number(&mut self) -> Range<usize> {
+        let start = self.sc.pos;
+        self.sc.consume_while(|u| matches!(u, b'0'..=b'9'));
+        if let Some(v) = self.sc.peek() {
+            if v == b'.' {
+                if self.sc.consume_if_next(|v| matches!(v, b'0'..=b'9')) {
+                    self.sc.consume_while(|u| matches!(u, b'0'..=b'9'));
+                }
+            }
+        }
+        start..self.sc.pos
     }
 }
 
