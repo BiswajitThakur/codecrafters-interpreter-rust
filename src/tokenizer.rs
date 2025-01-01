@@ -96,13 +96,38 @@ impl<'a> From<&'a str> for Lexer<'a> {
 impl<'a> Lexer<'a> {
     fn match_token(&mut self, v: u8) -> Option<Token<'a>> {
         match v {
+            b'=' => Some(self.either(b'=', Token::EqualEqual, Token::Equal)),
+            b'!' => Some(self.either(b'=', Token::BangEqual, Token::Bang)),
+            b'>' => Some(self.either(b'=', Token::GreaterEqual, Token::Greater)),
+            b'<' => Some(self.either(b'=', Token::LessEqual, Token::Less)),
+            b'/' => {
+                if self.sc.consume_if(|u| u == b'/') {
+                    self.sc.consume_while(|u| u != b'\n');
+                    None
+                } else {
+                    Some(Token::Slash)
+                }
+            }
             b'(' => Some(Token::LeftParen),
             b')' => Some(Token::RightParen),
             b'{' => Some(Token::LeftBrace),
             b'}' => Some(Token::RightBrace),
             b'[' => Some(Token::LeftBracket),
             b']' => Some(Token::RightBracket),
+            b',' => Some(Token::Comma),
+            b'-' => Some(Token::Minus),
+            b'+' => Some(Token::Plus),
+            b';' => Some(Token::Semicolon),
+            b'*' => Some(Token::Star),
+            b'.' => Some(Token::Dot),
             _ => todo!(),
+        }
+    }
+    fn either(&mut self, to_match: u8, matched: Token<'a>, unmatched: Token<'a>) -> Token<'a> {
+        if self.sc.consume_if(|v| v == to_match) {
+            matched
+        } else {
+            unmatched
         }
     }
 }
