@@ -98,6 +98,10 @@ impl<'a> Lexer<'a> {
         match v {
             b'(' => Some(Token::LeftParen),
             b')' => Some(Token::RightParen),
+            b'{' => Some(Token::LeftBrace),
+            b'}' => Some(Token::RightBrace),
+            b'[' => Some(Token::LeftBracket),
+            b']' => Some(Token::RightBracket),
             _ => todo!(),
         }
     }
