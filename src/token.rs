@@ -60,7 +60,7 @@ impl fmt::Display for Token<'_> {
             Self::BangEqual => f.write_str("BANG_EQUAL != null"),
             Self::LessEqual => f.write_str("LESS_EQUAL <= null"),
             Self::GreaterEqual => f.write_str("GREATER_EQUAL >= null"),
-            Self::String(_) => todo!(),
+            Self::String(s) => write!(f, "STRING \"{}\" {}", s, s),
             Self::Error(e) => write!(f, "{}", e),
             Self::Eof => f.write_str("EOF  null"),
         }

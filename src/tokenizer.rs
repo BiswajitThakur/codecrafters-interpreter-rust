@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::{LoxError, Token, WithSpan};
 
 #[derive(Debug)]
@@ -94,6 +96,10 @@ impl<'a> From<&'a str> for Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
+    #[inline(always)]
+    pub fn get_line(&self) -> usize {
+        self.line
+    }
     fn match_token(&mut self, v: u8) -> Option<Token<'a>> {
         match v {
             s if (s as char).is_ascii_whitespace() => None,
@@ -107,6 +113,16 @@ impl<'a> Lexer<'a> {
                     None
                 } else {
                     Some(Token::Slash)
+                }
+            }
+            b'"' => {
+                let st = self.sc.consume_while(|u| u != b'"');
+                if self.sc.next().is_some() {
+                    Some(Token::String(unsafe {
+                        Cow::Borrowed(std::str::from_utf8_unchecked(st))
+                    }))
+                } else {
+                    Some(Token::Error(LoxError::UnterminatedStr(self.line)))
                 }
             }
             b'(' => Some(Token::LeftParen),
@@ -151,7 +167,6 @@ impl<'a> Iterator for Lexer<'a> {
             let nxt_char = nxt_char.unwrap();
             if nxt_char == b'\n' {
                 self.line += 1;
-                continue;
             }
             let token = self.match_token(nxt_char);
             if token.is_none() {
