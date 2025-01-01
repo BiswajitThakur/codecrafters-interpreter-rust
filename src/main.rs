@@ -1,6 +1,8 @@
 use std::env;
 use std::fs;
 
+use codecrafters_interpreter::Lexer;
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
@@ -16,10 +18,9 @@ fn main() {
     });
     match command.as_str() {
         "tokenize" => {
-            if !file_contents.is_empty() {
-                panic!("Scanner not implemented");
-            } else {
-                println!("EOF  null");
+            let lx = Lexer::from(file_contents.as_str());
+            for token in lx {
+                println!("{}", token.as_ref());
             }
         }
         _ => {
