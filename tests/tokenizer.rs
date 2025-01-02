@@ -1,10 +1,10 @@
-use codecrafters_interpreter::{Lexer, Token, WithSpan};
+use codecrafters_interpreter::{Lexer, Token};
 
 #[test]
 fn test_lexer_empty() {
     let input = "";
     let mut lx = Lexer::from(input);
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Eof, 0..0)));
+    assert_eq!(lx.next(), Some((Token::Eof, 1, 0..0).into()));
     assert_eq!(lx.next(), None);
 }
 
@@ -12,18 +12,18 @@ fn test_lexer_empty() {
 fn test_lexer_brace() {
     let input = "())({}][()]";
     let mut lx = Lexer::from(input);
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::LeftParen, 0..1)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::RightParen, 1..2)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::RightParen, 2..3)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::LeftParen, 3..4)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::LeftBrace, 4..5)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::RightBrace, 5..6)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::RightBracket, 6..7)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::LeftBracket, 7..8)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::LeftParen, 8..9)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::RightParen, 9..10)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::RightBracket, 10..11)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Eof, 10..10)));
+    assert_eq!(lx.next(), Some((Token::LeftParen, 1, 0..1).into()));
+    assert_eq!(lx.next(), Some((Token::RightParen, 1, 1..2).into()));
+    assert_eq!(lx.next(), Some((Token::RightParen, 1, 2..3).into()));
+    assert_eq!(lx.next(), Some((Token::LeftParen, 1, 3..4).into()));
+    assert_eq!(lx.next(), Some((Token::LeftBrace, 1, 4..5).into()));
+    assert_eq!(lx.next(), Some((Token::RightBrace, 1, 5..6).into()));
+    assert_eq!(lx.next(), Some((Token::RightBracket, 1, 6..7).into()));
+    assert_eq!(lx.next(), Some((Token::LeftBracket, 1, 7..8).into()));
+    assert_eq!(lx.next(), Some((Token::LeftParen, 1, 8..9).into()));
+    assert_eq!(lx.next(), Some((Token::RightParen, 1, 9..10).into()));
+    assert_eq!(lx.next(), Some((Token::RightBracket, 1, 10..11).into()));
+    assert_eq!(lx.next(), Some((Token::Eof, 1, 10..10).into()));
     assert_eq!(lx.next(), None);
 }
 
@@ -31,23 +31,23 @@ fn test_lexer_brace() {
 fn test_lexer_single_or_two() {
     let input = "!!=>>=<=<+==</,-;*.*";
     let mut lx = Lexer::from(input);
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Bang, 0..1)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::BangEqual, 1..3)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Greater, 3..4)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::GreaterEqual, 4..6)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::LessEqual, 6..8)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Less, 8..9)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Plus, 9..10)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::EqualEqual, 10..12)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Less, 12..13)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Slash, 13..14)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Comma, 14..15)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Minus, 15..16)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Semicolon, 16..17)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Star, 17..18)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Dot, 18..19)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Star, 19..20)));
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Eof, 19..19)));
+    assert_eq!(lx.next(), Some((Token::Bang, 1, 0..1).into()));
+    assert_eq!(lx.next(), Some((Token::BangEqual, 1, 1..3).into()));
+    assert_eq!(lx.next(), Some((Token::Greater, 1, 3..4).into()));
+    assert_eq!(lx.next(), Some((Token::GreaterEqual, 1, 4..6).into()));
+    assert_eq!(lx.next(), Some((Token::LessEqual, 1, 6..8).into()));
+    assert_eq!(lx.next(), Some((Token::Less, 1, 8..9).into()));
+    assert_eq!(lx.next(), Some((Token::Plus, 1, 9..10).into()));
+    assert_eq!(lx.next(), Some((Token::EqualEqual, 1, 10..12).into()));
+    assert_eq!(lx.next(), Some((Token::Less, 1, 12..13).into()));
+    assert_eq!(lx.next(), Some((Token::Slash, 1, 13..14).into()));
+    assert_eq!(lx.next(), Some((Token::Comma, 1, 14..15).into()));
+    assert_eq!(lx.next(), Some((Token::Minus, 1, 15..16).into()));
+    assert_eq!(lx.next(), Some((Token::Semicolon, 1, 16..17).into()));
+    assert_eq!(lx.next(), Some((Token::Star, 1, 17..18).into()));
+    assert_eq!(lx.next(), Some((Token::Dot, 1, 18..19).into()));
+    assert_eq!(lx.next(), Some((Token::Star, 1, 19..20).into()));
+    assert_eq!(lx.next(), Some((Token::Eof, 1, 19..19).into()));
     assert_eq!(lx.next(), None);
 }
 
@@ -56,25 +56,25 @@ fn test_lexer_line() {
     let input = "++\n-==\n\n()\n*\n;;";
     let mut lx = Lexer::from(input);
     assert_eq!(lx.get_line(), 1);
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Plus, 0..1)));
+    assert_eq!(lx.next(), Some((Token::Plus, 1, 0..1).into()));
     assert_eq!(lx.get_line(), 1);
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Plus, 1..2)));
+    assert_eq!(lx.next(), Some((Token::Plus, 1, 1..2).into()));
     assert_eq!(lx.get_line(), 1);
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Minus, 3..4)));
+    assert_eq!(lx.next(), Some((Token::Minus, 2, 3..4).into()));
     assert_eq!(lx.get_line(), 2);
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::EqualEqual, 4..6)));
+    assert_eq!(lx.next(), Some((Token::EqualEqual, 2, 4..6).into()));
     assert_eq!(lx.get_line(), 2);
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::LeftParen, 8..9)));
+    assert_eq!(lx.next(), Some((Token::LeftParen, 4, 8..9).into()));
     assert_eq!(lx.get_line(), 4);
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::RightParen, 9..10)));
+    assert_eq!(lx.next(), Some((Token::RightParen, 4, 9..10).into()));
     assert_eq!(lx.get_line(), 4);
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Star, 11..12)));
+    assert_eq!(lx.next(), Some((Token::Star, 5, 11..12).into()));
     assert_eq!(lx.get_line(), 5);
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Semicolon, 13..14)));
+    assert_eq!(lx.next(), Some((Token::Semicolon, 6, 13..14).into()));
     assert_eq!(lx.get_line(), 6);
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Semicolon, 14..15)));
+    assert_eq!(lx.next(), Some((Token::Semicolon, 6, 14..15).into()));
     assert_eq!(lx.get_line(), 6);
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Eof, 14..14)));
+    assert_eq!(lx.next(), Some((Token::Eof, 6, 14..14).into()));
     assert_eq!(lx.get_line(), 6);
     assert_eq!(lx.next(), None);
     assert_eq!(lx.get_line(), 6);
@@ -88,20 +88,17 @@ fn test_lexer_string() {
     let mut lx = Lexer::from(input);
     assert_eq!(
         lx.next(),
-        Some(WithSpan::new(Token::String("hello".into()), 0..7))
+        Some((Token::String("hello".into()), 1, 0..7).into())
     );
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Eof, 6..6)));
+    assert_eq!(lx.next(), Some((Token::Eof, 1, 6..6).into()));
     let input = r#"+"""hello // world""#;
     let mut lx = Lexer::from(input);
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Plus, 0..1)));
+    assert_eq!(lx.next(), Some((Token::Plus, 1, 0..1).into()));
+    assert_eq!(lx.next(), Some((Token::String("".into()), 1, 1..3).into()));
     assert_eq!(
         lx.next(),
-        Some(WithSpan::new(Token::String("".into()), 1..3))
+        Some((Token::String("hello // world".into()), 1, 3..19).into())
     );
-    assert_eq!(
-        lx.next(),
-        Some(WithSpan::new(Token::String("hello // world".into()), 3..19))
-    );
-    assert_eq!(lx.next(), Some(WithSpan::new(Token::Eof, 18..18)));
+    assert_eq!(lx.next(), Some((Token::Eof, 1, 18..18).into()));
     assert_eq!(lx.next(), None);
 }

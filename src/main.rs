@@ -1,7 +1,11 @@
 use std::env;
 use std::fs;
+use std::io;
 
 use codecrafters_interpreter::Lexer;
+use codecrafters_interpreter::Parser;
+use codecrafters_interpreter::Token;
+use codecrafters_interpreter::WithSpan;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -30,6 +34,12 @@ fn main() {
                 }
             }
             std::process::exit(exit_code);
+        }
+        "parse" => {
+            let lx = Lexer::from(file_contents.as_str());
+            let tokens = lx.collect::<Vec<WithSpan<Token>>>();
+            let mut parser = Parser::<io::Sink>::new(&tokens, None);
+            println!("{}", parser.parse().unwrap().get_value());
         }
         _ => {
             eprintln!("Unknown command: {}", command);

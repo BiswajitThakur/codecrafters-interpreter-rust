@@ -199,7 +199,7 @@ impl<'a> Iterator for Lexer<'a> {
                 } else {
                     self.end = true;
                     let end_pos = self.sc.pos.checked_sub(1).unwrap_or(0);
-                    return Some(WithSpan::new(Token::Eof, end_pos..end_pos));
+                    return Some(WithSpan::new(Token::Eof, self.line, end_pos..end_pos));
                 }
             }
             let nxt_char = nxt_char.unwrap();
@@ -211,7 +211,11 @@ impl<'a> Iterator for Lexer<'a> {
                 continue;
             }
             let end_pos = self.sc.pos;
-            return Some(WithSpan::new(token.unwrap(), initial_pos..end_pos));
+            return Some(WithSpan::new(
+                token.unwrap(),
+                self.line,
+                initial_pos..end_pos,
+            ));
         }
     }
 }
