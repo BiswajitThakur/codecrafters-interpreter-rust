@@ -6,7 +6,7 @@ use std::{
 };
 
 use crate::{
-    ast::{BinaryOperator, Expr},
+    ast::{BinaryOperator, Expr, UnaryOperator},
     token::TokenKind,
     Token, WithSpan,
 };
@@ -127,7 +127,7 @@ impl<'a, W: io::Write> Parser<'a, W> {
             | TokenKind::Identifier
             | TokenKind::Super
             | TokenKind::String => self.parse_primary(),
-            TokenKind::Bang | TokenKind::Minus => todo!(),
+            TokenKind::Bang | TokenKind::Minus => self.parse_unary(),
             TokenKind::LeftParen => self.parse_grouping(),
             TokenKind::LeftBracket => todo!(),
             _ => {
@@ -226,6 +226,43 @@ impl<'a, W: io::Write> Parser<'a, W> {
         let range = left_paren.get_span().start..right_paren.get_span().end;
         let line = left_paren.get_line();
         Ok(WithSpan::new(Expr::Grouping(Box::new(expr)), line, range))
+    }
+    fn parse_unary(&mut self) -> io::Result<WithSpan<Expr<'a>>> {
+        let operator = self.parse_unary_op()?;
+        let right = self.parse_expr(Precedence::Unary)?;
+        let line = operator.get_line();
+        let range = operator.get_span().start..right.get_span().end;
+        Ok(WithSpan::new(
+            Expr::Unary(operator, Box::new(right)),
+            line,
+            range,
+        ))
+    }
+    fn parse_unary_op(&mut self) -> io::Result<WithSpan<UnaryOperator>> {
+        let tc = self.advance()?;
+        match tc.get_value() {
+            Token::Minus => Ok(WithSpan::new(
+                UnaryOperator::Minus,
+                tc.get_line(),
+                tc.get_span(),
+            )),
+            Token::Bang => Ok(WithSpan::new(
+                UnaryOperator::Bang,
+                tc.get_line(),
+                tc.get_span(),
+            )),
+            _ => {
+                self.error(format!(
+                    " {} | Unexpected unary operator got: {}",
+                    tc.get_line(),
+                    tc.get_value()
+                ))?;
+                Err(io::Error::new(
+                    ErrorKind::InvalidInput,
+                    "unexpected unary operator",
+                ))
+            }
+        }
     }
 }
 

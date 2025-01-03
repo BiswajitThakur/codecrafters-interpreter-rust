@@ -5,6 +5,12 @@ use std::{
 
 use crate::position::WithSpan;
 
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum UnaryOperator {
+    Bang,
+    Minus,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum BinaryOperator {
     Plus,
@@ -23,6 +29,7 @@ pub enum Expr<'a> {
     Nil,
     This,
     String(Cow<'a, str>),
+    Unary(WithSpan<UnaryOperator>, Box<WithSpan<Expr<'a>>>),
 }
 
 impl fmt::Display for Expr<'_> {
@@ -48,6 +55,10 @@ impl fmt::Display for Expr<'_> {
             }
             Self::Grouping(g) => write!(f, "(group {})", g.get_value()),
             Self::String(v) => f.write_str(v),
+            Self::Unary(u, v) => match u.get_value() {
+                UnaryOperator::Bang => write!(f, "(! {})", v.get_value()),
+                UnaryOperator::Minus => write!(f, "(- {})", v.get_value()),
+            },
         }
     }
 }
