@@ -78,10 +78,8 @@ impl<'a, W: io::Write> Parser<'a, W> {
             Ok(token)
         } else {
             self.error(format!(
-                "line:{}, pos: {:?} | Expected {} got {}",
+                "[line {}] Error at {}: Expect expression.",
                 token.get_line(),
-                token.get_span(),
-                expected,
                 token.get_value()
             ))?;
             Err(io::Error::new(
@@ -183,7 +181,7 @@ impl<'a, W: io::Write> Parser<'a, W> {
                 tc.get_line(),
                 tc.get_span(),
             )),
-            _ => todo!(),
+            _ => Err(io::Error::new(ErrorKind::InvalidInput, "Unexpected token")),
         }
     }
 

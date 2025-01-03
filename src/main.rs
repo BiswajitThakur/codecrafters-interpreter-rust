@@ -20,10 +20,10 @@ fn main() {
         eprintln!("Failed to read file {}", filename);
         String::new()
     });
+    let mut exit_code = 0;
     match command.as_str() {
         "tokenize" => {
             let lx = Lexer::from(file_contents.as_str());
-            let mut exit_code = 0;
             for token in lx {
                 let t = token.as_ref();
                 if t.is_ok() {
@@ -33,17 +33,21 @@ fn main() {
                     eprintln!("{}", t);
                 }
             }
-            std::process::exit(exit_code);
         }
         "parse" => {
             let lx = Lexer::from(file_contents.as_str());
             let tokens = lx.collect::<Vec<WithSpan<Token>>>();
             let mut parser = Parser::<io::Sink>::new(&tokens, None);
-            println!("{}", parser.parse().unwrap().get_value());
+            if let Ok(v) = parser.parse() {
+                println!("{}", v.get_value());
+            } else {
+                exit_code = 65;
+            }
         }
         _ => {
             eprintln!("Unknown command: {}", command);
             return;
         }
     }
+    std::process::exit(exit_code);
 }
