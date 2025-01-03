@@ -15,6 +15,14 @@ pub enum UnaryOperator {
 pub enum BinaryOperator {
     Plus,
     Minus,
+    Star,
+    Slash,
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual,
+    BangEqual,
+    EqualEqual,
 }
 
 pub enum Expr<'a> {
@@ -48,10 +56,18 @@ impl fmt::Display for Expr<'_> {
             Self::Binary(a, o, b) => {
                 f.write_char('(')?;
                 f.write_str(match o.get_value() {
-                    &BinaryOperator::Plus => "+ ",
-                    &BinaryOperator::Minus => "- ",
+                    BinaryOperator::Plus => "+",
+                    BinaryOperator::Minus => "-",
+                    BinaryOperator::Star => "*",
+                    BinaryOperator::Slash => "/",
+                    BinaryOperator::Greater => ">",
+                    BinaryOperator::GreaterEqual => ">=",
+                    BinaryOperator::Less => "<",
+                    BinaryOperator::LessEqual => "<=",
+                    BinaryOperator::BangEqual => "!=",
+                    BinaryOperator::EqualEqual => "==",
                 })?;
-                write!(f, "{} {})", a.get_value(), b.get_value())
+                write!(f, " {} {})", a.get_value(), b.get_value())
             }
             Self::Grouping(g) => write!(f, "(group {})", g.get_value()),
             Self::String(v) => f.write_str(v),

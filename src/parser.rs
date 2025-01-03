@@ -205,6 +205,14 @@ impl<'a, W: io::Write> Parser<'a, W> {
         let operator = match tc.get_value() {
             Token::Plus => BinaryOperator::Plus,
             Token::Minus => BinaryOperator::Minus,
+            Token::Star => BinaryOperator::Star,
+            Token::Slash => BinaryOperator::Slash,
+            Token::BangEqual => BinaryOperator::BangEqual,
+            Token::EqualEqual => BinaryOperator::EqualEqual,
+            Token::Less => BinaryOperator::Less,
+            Token::LessEqual => BinaryOperator::LessEqual,
+            Token::Greater => BinaryOperator::Greater,
+            Token::GreaterEqual => BinaryOperator::GreaterEqual,
             _ => {
                 self.error(format!(
                     " {} | Unexpected binary operator got: {:?}",
