@@ -128,7 +128,7 @@ impl<'a, W: io::Write> Parser<'a, W> {
             | TokenKind::Super
             | TokenKind::String => self.parse_primary(),
             TokenKind::Bang | TokenKind::Minus => todo!(),
-            TokenKind::LeftParen => todo!(),
+            TokenKind::LeftParen => self.parse_grouping(),
             TokenKind::LeftBracket => todo!(),
             _ => {
                 self.error(format!("Unexpected: TODO"))?;
@@ -151,7 +151,7 @@ impl<'a, W: io::Write> Parser<'a, W> {
             | TokenKind::Slash => self.parse_binary(left),
             TokenKind::Or | TokenKind::And => todo!(),
             TokenKind::Equal => todo!(),
-            TokenKind::LeftParen => todo!(),
+            TokenKind::LeftParen => self.parse_grouping(),
             TokenKind::LeftBracket => todo!(),
             TokenKind::Dot => todo!(),
             _ => todo!(),
@@ -218,6 +218,14 @@ impl<'a, W: io::Write> Parser<'a, W> {
             }
         };
         Ok(WithSpan::new(operator, tc.get_line(), tc.get_span()))
+    }
+    fn parse_grouping(&mut self) -> io::Result<WithSpan<Expr<'a>>> {
+        let left_paren = self.expect(TokenKind::LeftParen)?;
+        let expr = self.parse_expr(Precedence::None)?;
+        let right_paren = self.expect(TokenKind::RightParen)?;
+        let range = left_paren.get_span().start..right_paren.get_span().end;
+        let line = left_paren.get_line();
+        Ok(WithSpan::new(Expr::Grouping(Box::new(expr)), line, range))
     }
 }
 

@@ -17,6 +17,7 @@ pub enum Expr<'a> {
         WithSpan<BinaryOperator>,
         Box<WithSpan<Expr<'a>>>,
     ),
+    Grouping(Box<WithSpan<Expr<'a>>>),
     Number(f64),
     Boolean(bool),
     Nil,
@@ -45,8 +46,8 @@ impl fmt::Display for Expr<'_> {
                 })?;
                 write!(f, "{} {})", a.get_value(), b.get_value())
             }
+            Self::Grouping(g) => write!(f, "(group {})", g.get_value()),
             Self::String(v) => f.write_str(v),
-            _ => Ok(()),
         }
     }
 }
