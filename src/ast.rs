@@ -45,6 +45,7 @@ impl fmt::Display for Expr<'_> {
                 })?;
                 write!(f, "{} {})", a.get_value(), b.get_value())
             }
+            Self::String(v) => f.write_str(v),
             _ => Ok(()),
         }
     }
